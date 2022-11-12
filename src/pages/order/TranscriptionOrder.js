@@ -8,8 +8,6 @@ import Subtitle from "../../components/Typography/Subtitle";
 import DragAndDropZone from "../../components/Inputs/DragAndDropZone";
 import cuid from "cuid";
 import MediaPlayer from "../../components/Inputs/MediaPlayer";
-import ffprobe from "ffprobe";
-import ffprobeStatic from "ffprobe-static";
 
 const TranscriptionOrder = () => {
   const dispatch = useDispatch();
@@ -38,11 +36,6 @@ const TranscriptionOrder = () => {
       const reader = new FileReader();
       reader.onload = function (e) {
         console.log("Event---->", e);
-        ffprobe(file, { path: ffprobeStatic.path }, function (err, info) {
-          if (err) return err;
-          console.log(info);
-        });
-
         setImages((prevState) => [
           ...prevState,
           { id: cuid(), src: e.target.result },
