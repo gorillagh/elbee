@@ -1,9 +1,12 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import Box from "@mui/material/Box";
+import Icon from "@mui/material/Icon";
+import Typography from "@mui/material/Typography";
 
 import { useDropzone } from "react-dropzone";
 import ActionButton from "../Buttons/ActionButton";
 import MediaPlayer from "./MediaPlayer";
+import { IconButton } from "@mui/material";
 const DragAndDropZone = ({
   onDrop,
   open,
@@ -15,8 +18,8 @@ const DragAndDropZone = ({
     getRootProps,
     getInputProps,
     isDragActive,
-    acceptedFiles,
-    fileRejections,
+    // acceptedFiles,
+    // fileRejections,
   } = useDropzone({
     accept: {
       "audio/*": [],
@@ -28,19 +31,7 @@ const DragAndDropZone = ({
     onChangeStatus,
     onSubmit,
   });
-  const acceptedFileItems = acceptedFiles.map((file) => (
-    // <MediaPlayer url={file} />
-    <li key={file.path}>
-      {JSON.stringify(file)}
-      {file.path} - {file.size} bytes
-    </li>
-  ));
-  const rejectedFileItems = fileRejections.map((file) => (
-    <li key={file.path}>
-      {JSON.stringify(file)}
-      {file.path} - {file.size} bytes
-    </li>
-  ));
+
   return (
     <>
       <Box
@@ -63,24 +54,31 @@ const DragAndDropZone = ({
             </Typography>
           ) : (
             <Typography align="center" variant="body2" my={3}>
-              Drag’ n’ drop some files here, or click to select files
+              Drag & drop some files here, or click to select files
             </Typography>
           )}
 
-          <ActionButton
-            variant="outlined"
-            text="Click to select files"
-            onClick={open}
-            my={0}
-          />
+          <Box display="flex" alignItems="center" justifyContent="center">
+            <Box width="60%">
+              <ActionButton
+                variant="contained"
+                text={
+                  <Typography textTransform="none">
+                    <IconButton>
+                      <Icon sx={{ color: "#fff" }} fontSize="small">
+                        upload_file
+                      </Icon>
+                    </IconButton>
+                    Upload File(s)
+                  </Typography>
+                }
+                // onClick={open}
+                my={0}
+              />
+            </Box>
+          </Box>
         </Box>
       </Box>
-      <aside>
-        <h4>Accepted files</h4>
-        <ul>{acceptedFileItems}</ul>
-        <h4>Rejected files</h4>
-        <ul>{rejectedFileItems}</ul>
-      </aside>
     </>
   );
 };

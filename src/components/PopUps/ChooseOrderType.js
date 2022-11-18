@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from "@mui/material/Modal";
-import { Box, Card, Grid, Typography } from "@mui/material";
+import { Box, Card, Grid, Icon, IconButton, Typography } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CloseIcon from "@mui/icons-material/Close";
 import ActionButton from "../Buttons/ActionButton";
@@ -17,7 +17,7 @@ const style = {
   bgcolor: "background.paper",
   boxShadow: 24,
   borderRadius: "16px",
-  p: 4,
+  p: 2,
 };
 
 const jobType = [
@@ -49,18 +49,19 @@ const ChooseOrderType = (props) => {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        {/* <Grid container justifyContent="right">
-          <Grid item xs={1}>
-            <CloseIcon />
-          </Grid>
-        </Grid> */}
-
         <Box sx={style}>
-          <Subtitle title="Choose Order Type" textAlign="center" />
+          <Grid container justifyContent="right">
+            <Grid item xs={1}>
+              <IconButton onClick={props.closeModal}>
+                <Icon fontSize="small">cancel</Icon>
+              </IconButton>
+            </Grid>
+          </Grid>
+          <Subtitle mt={0} title="Choose Order Type" textAlign="center" />
 
           <Grid container justifyContent="center" spacing={3}>
             {jobType.map((item, index) => (
-              <Grid item xs={12} md={4} p={2}>
+              <Grid item xs={12} md={4}>
                 <Card
                   sx={{
                     width: "80%",
