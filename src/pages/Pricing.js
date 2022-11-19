@@ -1,73 +1,41 @@
 import React from "react";
-import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import CardHeader from "@mui/material/CardHeader";
-import CssBaseline from "@mui/material/CssBaseline";
 import Grid from "@mui/material/Grid";
-import StarIcon from "@mui/icons-material/StarBorder";
-import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import Link from "@mui/material/Link";
-import GlobalStyles from "@mui/material/GlobalStyles";
+
 import Container from "@mui/material/Container";
 import PageTitle from "../components/Typography/PageTitle";
 import Subtitle from "../components/Typography/Subtitle";
 import ActionButton from "../components/Buttons/ActionButton";
-import Footer from "../components/Footers/Footer";
+import { useNavigate } from "react-router-dom";
 
 const tiers = [
   {
     title: "Transcription",
     price: "1",
     description: ["Video & Audio"],
+    to: "/order/transcription",
   },
   {
     title: "Captioning",
     price: "1.5",
     description: ["Video"],
+    to: "/order/captioning",
   },
   {
     title: "Translation",
     price: "2.5",
     description: ["Video & Audio"],
-  },
-];
-
-const footers = [
-  {
-    title: "Company",
-    description: ["Team", "History", "Contact us", "Locations"],
-  },
-  {
-    title: "Features",
-    description: [
-      "Cool stuff",
-      "Random feature",
-      "Team feature",
-      "Developer stuff",
-      "Another one",
-    ],
-  },
-  {
-    title: "Resources",
-    description: [
-      "Resource",
-      "Resource name",
-      "Another resource",
-      "Final resource",
-    ],
-  },
-  {
-    title: "Legal",
-    description: ["Privacy policy", "Terms of use"],
+    to: "/order/translation",
   },
 ];
 
 const Pricing = () => {
+  const navigate = useNavigate();
   return (
     <>
       {/* Hero unit */}
@@ -121,7 +89,11 @@ const Pricing = () => {
                 ))}
               </CardContent>
               <CardActions>
-                <ActionButton my={0} text="Order Now" />
+                <ActionButton
+                  my={0}
+                  text="Order Now"
+                  onClick={() => navigate(tier.to)}
+                />
               </CardActions>
             </Card>
           </Grid>

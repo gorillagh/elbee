@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Box from "@mui/material/Box";
 import Icon from "@mui/material/Icon";
 import Typography from "@mui/material/Typography";
@@ -13,7 +13,11 @@ const DragAndDropZone = ({
   getUploadParams,
   onChangeStatus,
   onSubmit,
+  files,
 }) => {
+  useEffect(() => {
+    console.log(files);
+  }, []);
   const {
     getRootProps,
     getInputProps,
@@ -61,15 +65,21 @@ const DragAndDropZone = ({
           <Box display="flex" alignItems="center" justifyContent="center">
             <Box width="60%">
               <ActionButton
-                variant="contained"
+                variant={files && files.length ? "outlined" : "contained"}
                 text={
                   <Typography textTransform="none">
                     <IconButton>
-                      <Icon sx={{ color: "#fff" }} fontSize="small">
+                      <Icon
+                        sx={{
+                          color:
+                            files && files.length ? "primary.main" : "#fff",
+                        }}
+                        fontSize="small"
+                      >
                         upload_file
                       </Icon>
                     </IconButton>
-                    Upload File(s)
+                    {files && files.length ? "Add Files" : "Upload File(s)"}
                   </Typography>
                 }
                 // onClick={open}

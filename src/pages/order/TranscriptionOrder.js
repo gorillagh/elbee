@@ -143,6 +143,58 @@ const TranscriptionOrder = () => {
       </Grid>
 
       <Grid container>
+        <Grid display={{ xs: "none", md: files.length && "block" }} item md={4}>
+          <Card
+            sx={{
+              m: 1,
+              // p: 1,
+              display: "flex",
+              flexDirection: "column",
+              // borderRadius: "16px",
+              background: " rgba(255, 255, 255, 0.7)",
+              webkitBackdropFilter: "blur(5px)",
+              border: "1px solid rgba(255, 255, 255, 0.9)",
+            }}
+          >
+            <Grid container justifyContent="center" my={3} spacing={2}>
+              <Grid md={10}>
+                <DragAndDropZone
+                  onDrop={onDrop}
+                  getUploadParams={getUploadParams}
+                  onChangeStatus={handleChangeStatus}
+                  onSubmit={handleSubmit}
+                  files={files}
+                />
+              </Grid>
+
+              <Grid item md={12}>
+                <Typography sx={{ my: 1 }} variant="body2" align="center">
+                  OR
+                </Typography>
+              </Grid>
+              <Grid item md={6}>
+                <Box>
+                  <ActionButton
+                    variant="outlined"
+                    text={
+                      <Typography>
+                        <IconButton>
+                          <Icon sx={{ color: "primary.main" }} fontSize="small">
+                            add_link
+                          </Icon>
+                        </IconButton>
+                        Add Link
+                      </Typography>
+                    }
+                    my={0}
+                    onClick={() => setOpenAddLink(true)}
+                  />
+                </Box>
+              </Grid>
+            </Grid>
+          </Card>
+        </Grid>
+
         <Grid item xs={12} md={8}>
           <Card
             sx={{
@@ -330,59 +382,19 @@ const TranscriptionOrder = () => {
               </Grid>
             </Grid> */}
           </Card>
-        </Grid>
-        {/* /////////////////////////////////////////////////// */}
-        <Grid display={{ xs: "none", md: files.length && "block" }} item md={4}>
-          <Card
-            sx={{
-              m: 1,
-              // p: 1,
-              display: "flex",
-              flexDirection: "column",
-              // borderRadius: "16px",
-              background: " rgba(255, 255, 255, 0.7)",
-              webkitBackdropFilter: "blur(5px)",
-              border: "1px solid rgba(255, 255, 255, 0.9)",
-            }}
-          >
-            <Grid container justifyContent="center" my={3} spacing={2}>
-              <Grid md={10}>
-                <DragAndDropZone
-                  onDrop={onDrop}
-                  getUploadParams={getUploadParams}
-                  onChangeStatus={handleChangeStatus}
-                  onSubmit={handleSubmit}
-                />
-              </Grid>
-
-              <Grid item md={12}>
-                <Typography sx={{ my: 1 }} variant="body2" align="center">
-                  OR
-                </Typography>
-              </Grid>
-              <Grid item md={6}>
-                <Box>
-                  <ActionButton
-                    variant="outlined"
-                    text={
-                      <Typography>
-                        <IconButton>
-                          <Icon sx={{ color: "primary.main" }} fontSize="small">
-                            add_link
-                          </Icon>
-                        </IconButton>
-                        Add Link
-                      </Typography>
-                    }
-                    my={0}
-                    onClick={() => setOpenAddLink(true)}
-                  />
-                </Box>
+          <Grid p={1} container display={!files.length && "none"}>
+            <Grid item xs={12}>
+              <Grid container justifyContent="right">
+                <Grid item xs={12} md={5}>
+                  <ActionButton text="Checkout" rightIcon="arrow_forward" />
+                </Grid>
               </Grid>
             </Grid>
-          </Card>
+          </Grid>
         </Grid>
+        {/* /////////////////////////////////////////////////// */}
       </Grid>
+
       <AddLink open={openAddLink} close={() => setOpenAddLink(false)} />
     </Box>
   );

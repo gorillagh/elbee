@@ -1,5 +1,6 @@
 import React from "react";
 import Button from "@mui/material/Button";
+import { Icon } from "@mui/material";
 
 const ActionButton = (props) => {
   return (
@@ -22,7 +23,13 @@ const ActionButton = (props) => {
       }}
       {...props}
     >
-      {props.text}
+      {props.leftIcon && props.leftIcon.length && (
+        <Icon fontSize="small">{props.leftIcon}</Icon>
+      )}{" "}
+      {props.text}{" "}
+      {props.rightIcon && props.rightIcon.length && (
+        <Icon fontSize="small">{props.rightIcon}</Icon>
+      )}
     </Button>
   );
 };

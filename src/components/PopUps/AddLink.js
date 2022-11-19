@@ -35,7 +35,11 @@ const AddLink = (props) => {
           <Box component="form" onSubmit={handleSubmit} noValidate>
             <Grid container justifyContent="right">
               <Grid mb={2} item xs={1}>
-                <Icon color="error" onClick={props.close}>
+                <Icon
+                  color="error"
+                  sx={{ cursor: "pointer" }}
+                  onClick={props.close}
+                >
                   cancel
                 </Icon>
               </Grid>
