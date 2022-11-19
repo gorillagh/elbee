@@ -81,22 +81,28 @@ const TranscriptionOrder = () => {
     let files = e.target.files;
     console.log("Files--->", files);
     for (let i = 0; i < files.length; i++) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        console.log("Event---->", e.target);
-        setFiles((prevState) => [
+      if (files[i].type.includes("image")) {
+        setRejectedFiles((prevState) => [
           ...prevState,
-          {
-            id: cuid(),
-            name: files[i].name,
-            type: files[i].type,
-            size: files[i].size,
-            src: e.target.result,
-          },
+          { name: files[i].name, size: files[i].size },
         ]);
-      };
-      reader.readAsDataURL(files[i]);
-
+      } else {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          console.log("Event---->", e.target);
+          setFiles((prevState) => [
+            ...prevState,
+            {
+              id: cuid(),
+              name: files[i].name,
+              type: files[i].type,
+              size: files[i].size,
+              src: e.target.result,
+            },
+          ]);
+        };
+        reader.readAsDataURL(files[i]);
+      }
       // return files[i];
     }
   };
@@ -153,7 +159,7 @@ const TranscriptionOrder = () => {
                   <input
                     ref={uploadInputRef}
                     type="file"
-                    accept="audio/*,video/*, .mp3"
+                    // accept="audio/*,video/*"
                     style={{ display: "none" }}
                     onChange={handleMobileUpload}
                     multiple
@@ -176,36 +182,6 @@ const TranscriptionOrder = () => {
                     my={0}
                   />
                 </Box>
-
-                {/* /////////////Control tesy//////////////////// */}
-                <Box sx={{ display: { xs: "block", md: "none" } }}>
-                  <input
-                    ref={uploadInputRef}
-                    type="file"
-                    // accept="audio/*,video/*, .mp3"
-                    style={{ display: "none" }}
-                    onChange={handleMobileUpload}
-                    multiple
-                  />
-                  <ActionButton
-                    onClick={() =>
-                      uploadInputRef.current && uploadInputRef.current.click()
-                    }
-                    variant="contained"
-                    text={
-                      <Typography textTransform="none">
-                        <IconButton>
-                          <Icon sx={{ color: "#fff" }} fontSize="small">
-                            upload_file
-                          </Icon>
-                        </IconButton>
-                        Upload File(s) -2
-                      </Typography>
-                    }
-                    my={0}
-                  />
-                </Box>
-                {/* //////////////////////////////////////////////// */}
               </Grid>
               <Grid item sx={12} md={12}>
                 <Typography sx={{ my: 3 }} variant="body2" align="center">
