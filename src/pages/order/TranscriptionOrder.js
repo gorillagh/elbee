@@ -17,9 +17,12 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Checkbox,
+  FormControlLabel,
   List,
   ListItem,
   ListItemAvatar,
+  ListItemIcon,
   ListItemText,
 } from "@mui/material";
 import AddLink from "../../components/PopUps/AddLink";
@@ -212,9 +215,14 @@ const TranscriptionOrder = () => {
               <List dense>
                 {files.map((file, i) => (
                   <ListItem key={file.id}>
-                    <Accordion sx={{ width: "100%" }}>
+                    <Accordion
+                      sx={{ width: "100%" }}
+                      defaultExpanded={i + 1 === files.length}
+                    >
                       <AccordionSummary
-                        expandIcon={<Icon>expand_more</Icon>}
+                        expandIcon={
+                          <Icon sx={{ color: "info.dark" }}>expand_more</Icon>
+                        }
                         aria-controls="panel1bh-content"
                         id="panel1bh-header"
                       >
@@ -236,9 +244,9 @@ const TranscriptionOrder = () => {
                                   setFiles(filteredFiles);
                                 }}
                                 fontSize="small"
-                                color="error"
+                                sx={{ color: "info.light" }}
                               >
-                                delete
+                                delete_outlined
                               </Icon>
                             </Typography>
                           </Grid>
@@ -340,6 +348,7 @@ const TranscriptionOrder = () => {
                   </Typography>
                 </Grid>
               )}
+
               <Grid item xs={files.length ? 6 : 12} md={files.length ? 4 : 5}>
                 <Box>
                   <ActionButton
@@ -365,6 +374,7 @@ const TranscriptionOrder = () => {
                 </Box>
               </Grid>
             </Grid>
+
             {/* <Grid container>
               <Grid item xs={6} sx={{ textAlign: "left" }}>
                 <ActionButton
@@ -387,7 +397,41 @@ const TranscriptionOrder = () => {
             <Grid item xs={12}>
               <Grid container justifyContent="right">
                 <Grid item xs={12} md={5}>
-                  <ActionButton text="Checkout" rightIcon="arrow_forward" />
+                  <Card
+                    sx={{
+                      m: 1,
+                      p: 2,
+                      display: "flex",
+                      flexDirection: "column",
+                      // borderRadius: "16px",
+                      background: " rgba(255, 255, 255, 0.7)",
+                      webkitBackdropFilter: "blur(5px)",
+                      border: "1px solid rgba(255, 255, 255, 0.9)",
+                    }}
+                  >
+                    <Grid container justifyContent="space-between" px={2}>
+                      <Grid item>
+                        <Typography textAlign="center" variant="h5">
+                          Total
+                        </Typography>
+                      </Grid>
+                      <Grid item>
+                        <Typography
+                          component="span"
+                          variant="h5"
+                          fontWeight={700}
+                        >
+                          $200
+                        </Typography>
+                      </Grid>
+                    </Grid>
+
+                    <ActionButton
+                      my={0}
+                      text="Checkout"
+                      rightIcon="arrow_forward"
+                    />
+                  </Card>
                 </Grid>
               </Grid>
             </Grid>

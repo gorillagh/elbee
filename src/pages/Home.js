@@ -39,7 +39,7 @@ const Home = () => {
                 <List sx={{ py: 0 }} key={index}>
                   <ListItem disablePadding>
                     <ListItemIcon>
-                      <CheckIcon sx={{ color: "#784af4" }} />
+                      <CheckIcon sx={{ color: "info.dark" }} />
                     </ListItemIcon>
                     <ListItemText primary={item} />
                   </ListItem>

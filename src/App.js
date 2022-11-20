@@ -64,9 +64,9 @@ let theme = createTheme({
       contrastText: "#fff",
     },
     info: {
-      main: "#726f55",
-      light: "#8f8b6a",
-      dark: "#5b5944",
+      main: "#784af4",
+      light: "#b095f9",
+      dark: "#4c0ff0",
       contrastText: "#fff",
     },
   },

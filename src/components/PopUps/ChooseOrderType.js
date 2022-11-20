@@ -83,9 +83,9 @@ const ChooseOrderType = (props) => {
                       {item.name}
                     </Typography>
                     <Typography variant="body1">{item.description}</Typography>
-                    <Typography color="secondary.dark">
+                    <Typography color="info.dark">
                       Let's Go{" "}
-                      <Typography color="secondary.dark" component="a">
+                      <Typography color="info.dark" component="a">
                         <ArrowForwardIcon sx={{ fontSize: "0.8rem" }} />{" "}
                       </Typography>
                     </Typography>
