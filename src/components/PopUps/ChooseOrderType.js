@@ -79,7 +79,7 @@ const ChooseOrderType = (props) => {
                   onClick={() => navigate(item.to)}
                 >
                   <Box>
-                    <Typography variant="body1" fontWeight={500}>
+                    <Typography variant="h6" fontWeight={700}>
                       {item.name}
                     </Typography>
                     <Typography variant="body1">{item.description}</Typography>

@@ -236,6 +236,7 @@ const TranscriptionOrder = () => {
                                   setFiles(filteredFiles);
                                 }}
                                 fontSize="small"
+                                color="error"
                               >
                                 delete
                               </Icon>
@@ -267,7 +268,7 @@ const TranscriptionOrder = () => {
                           </Grid>
                         </Grid>
                       </AccordionSummary>
-                      <AccordionDetails>
+                      <AccordionDetails sx={{ px: 3 }}>
                         <Typography variant="body2">
                           {file.name}
                           <br />
