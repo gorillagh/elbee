@@ -66,22 +66,8 @@ const DragAndDropZone = ({
             <Box width="60%">
               <ActionButton
                 variant={files && files.length ? "outlined" : "contained"}
-                text={
-                  <Typography textTransform="none">
-                    <IconButton>
-                      <Icon
-                        sx={{
-                          color:
-                            files && files.length ? "primary.main" : "#fff",
-                        }}
-                        fontSize="small"
-                      >
-                        upload_file
-                      </Icon>
-                    </IconButton>
-                    {files && files.length ? "Add Files" : "Upload File(s)"}
-                  </Typography>
-                }
+                text={files && files.length ? "Add Files" : "Upload File(s)"}
+                leftIcon="upload_file"
                 // onClick={open}
                 my={0}
               />

@@ -24,11 +24,15 @@ const ActionButton = (props) => {
       {...props}
     >
       {props.leftIcon && props.leftIcon.length && (
-        <Icon fontSize="small">{props.leftIcon}</Icon>
+        <Icon sx={{ mr: 1 }} fontSize="small">
+          {props.leftIcon}
+        </Icon>
       )}{" "}
       {props.text}{" "}
       {props.rightIcon && props.rightIcon.length && (
-        <Icon fontSize="small">{props.rightIcon}</Icon>
+        <Icon sx={{ ml: 1 }} fontSize="small">
+          {props.rightIcon}
+        </Icon>
       )}
     </Button>
   );
