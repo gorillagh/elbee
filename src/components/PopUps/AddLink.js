@@ -4,6 +4,8 @@ import Modal from "@mui/material/Modal";
 import { Box, Grid, Icon, IconButton, TextField } from "@mui/material";
 import ActionButton from "../Buttons/ActionButton";
 import Subtitle from "../Typography/Subtitle";
+import ReactPlayer from "react-player";
+import cuid from "cuid";
 
 const style = {
   position: "absolute",
@@ -20,8 +22,42 @@ const style = {
 };
 
 const AddLink = (props) => {
-  const handleSubmit = (e) => {
+  const [url, setUrl] = React.useState();
+  const [fileDuration, setFileDuration] = React.useState();
+  const [linkFile, setLinkFile] = React.useState({});
+
+  const handleDuration = async (e, type, size) => {
+    let duration = Number(e) / 60;
+
+    duration =
+      duration % 1 > 0
+        ? (duration > 0 ? Math.floor(duration) : Math.ceil(duration)) + 1
+        : duration > 0
+        ? Math.floor(duration)
+        : Math.ceil(duration);
+
+    if (duration > 0)
+      setLinkFile({
+        id: cuid(),
+        name: url,
+        type: type || "video",
+        size: size || "",
+        amount: duration * 1.0,
+        duration,
+        src: url,
+        express: false,
+        verbatim: false,
+        timeStamp: false,
+        total: duration * 1.0,
+      });
+  };
+
+  const handleSubmit = async (e, type) => {
     e.preventDefault();
+
+    await props.setFiles((prevState) => [...prevState, linkFile]);
+    setUrl("");
+    setLinkFile({});
     props.close();
   };
   return (
@@ -32,13 +68,20 @@ const AddLink = (props) => {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
+          <Box display="none">
+            <ReactPlayer url={url} onDuration={handleDuration} />
+          </Box>
           <Box component="form" onSubmit={handleSubmit} noValidate>
             <Grid container justifyContent="right">
               <Grid mb={2} item xs={1}>
                 <Icon
                   color="error"
                   sx={{ cursor: "pointer" }}
-                  onClick={props.close}
+                  onClick={() => {
+                    setUrl("");
+                    setLinkFile({});
+                    props.close();
+                  }}
                 >
                   cancel
                 </Icon>
@@ -51,8 +94,13 @@ const AddLink = (props) => {
               fullWidth
               multiline
               rows={4}
+              onChange={(e) => setUrl(e.target.value)}
             />
-            <ActionButton type="submit" text="Submit" />
+            <ActionButton
+              type="submit"
+              text="Submit"
+              disabled={!linkFile.duration}
+            />
           </Box>
         </Box>
       </Modal>

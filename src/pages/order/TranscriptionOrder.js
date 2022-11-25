@@ -13,35 +13,20 @@ import PageTitle from "../../components/Typography/PageTitle";
 import Subtitle from "../../components/Typography/Subtitle";
 import DragAndDropZone from "../../components/Inputs/DragAndDropZone";
 import cuid from "cuid";
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Checkbox,
-  FormControlLabel,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
+import Accordion from "@mui/material/Accordion";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import Checkbox from "@mui/material/Checkbox";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
 import AddLink from "../../components/PopUps/AddLink";
-
-const additionalPackages = [
-  { name: "Express Order", details: "$0.3/min", cost: "$10" },
-  { name: "Timestamp", details: "$0.5/min", cost: "$15" },
-  { name: "Verbatim", details: "$0.5/min", cost: "$15" },
-];
 
 const TranscriptionOrder = () => {
   const [files, setFiles] = useState([]);
   const [rejectedFiles, setRejectedFiles] = useState([]);
   const [openAddLink, setOpenAddLink] = useState(false);
   const uploadInputRef = useRef(null);
-
-  const Input = styled("input")({
-    display: "none",
-  });
+  const [accordionExpanded, setAccordionExpanded] = React.useState(false);
 
   const dispatch = useDispatch();
   const { stepper } = useSelector((state) => ({ ...state }));
@@ -63,6 +48,24 @@ const TranscriptionOrder = () => {
     allFiles.forEach((f) => f.remove());
   };
 
+  const calculateFileCost = (file) => {
+    file.total =
+      Number(file.amount) +
+      (file.express ? Number(file.duration) * 0.3 : 0) +
+      (file.verbatim ? Number(file.duration) * 0.5 : 0) +
+      (file.timeStamp ? Number(file.duration) * 0.4 : 0);
+
+    setFiles((prevState) => {
+      let foundIndex = prevState.findIndex((f) => f.id === file.id);
+      prevState[foundIndex].total = (
+        Math.round(file.total * 100) / 100
+      ).toFixed(2);
+
+      return [...prevState];
+    });
+    console.log("file cost ----->", file.total);
+  };
+
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
     console.log(acceptedFiles);
     console.log(rejectedFiles);
@@ -70,7 +73,10 @@ const TranscriptionOrder = () => {
       console.log(file);
       const reader = new FileReader();
       reader.onload = function (e) {
-        console.log("Event---->", e.target);
+        console.log("Event---->", e.target.result);
+
+        /////////send file to backend ///////
+
         setFiles((prevState) => [
           ...prevState,
           {
@@ -78,8 +84,13 @@ const TranscriptionOrder = () => {
             name: file.name,
             type: file.type,
             size: file.size,
+            duration: 2,
             amount: 50,
             src: e.target.result,
+            express: false,
+            verbatim: false,
+            timeStamp: false,
+            total: 50,
           },
         ]);
       };
@@ -115,8 +126,13 @@ const TranscriptionOrder = () => {
               name: files[i].name,
               type: files[i].type,
               size: files[i].size,
+              duration: 2,
               amount: 50,
               src: e.target.result,
+              express: false,
+              verbatim: false,
+              timeStamp: false,
+              total: 50,
             },
           ]);
         };
@@ -259,7 +275,9 @@ const TranscriptionOrder = () => {
                     <ListItem key={file.id}>
                       <Accordion
                         sx={{ width: "100%" }}
-                        defaultExpanded={i + 1 === files.length}
+                        onChange={(event, isExpanded) => {
+                          setAccordionExpanded(isExpanded ? file.id : false);
+                        }}
                       >
                         <AccordionSummary
                           expandIcon={
@@ -294,12 +312,18 @@ const TranscriptionOrder = () => {
                             </Grid>
                             <Grid item xs={7.5}>
                               <Typography
+                                display={
+                                  accordionExpanded === file.id && "none"
+                                }
                                 fontWeight={500}
                                 // variant="body2"
                                 sx={{
                                   // color: "text.secondary",
                                   maxHeight: "30px",
                                   overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  inlineSize: { xs: "150px", md: "100%" },
+                                  whiteSpace: "nowrap",
                                 }}
                               >
                                 {file.name}
@@ -307,6 +331,9 @@ const TranscriptionOrder = () => {
                             </Grid>
                             <Grid item xs={3}>
                               <Typography
+                                display={
+                                  accordionExpanded === file.id && "none"
+                                }
                                 // variant="body2"
                                 fontWeight={500}
                                 sx={{
@@ -315,38 +342,194 @@ const TranscriptionOrder = () => {
                                   overflow: "hidden",
                                 }}
                               >
-                                ${file.amount}
+                                ${file.total}
                               </Typography>
                             </Grid>
                           </Grid>
                         </AccordionSummary>
                         <AccordionDetails sx={{ px: 3 }}>
-                          <Typography variant="body2" fontWeight={600}>
-                            {file.name}
-                          </Typography>
-                          {additionalPackages.map((p, i) => (
-                            <Grid container spacing={1} my={0.1}>
-                              <Grid item xs={1.5}>
-                                <Checkbox
-                                  size="small"
-                                  sx={{ color: "info.dark" }}
-                                />
-                              </Grid>
-                              <Grid item xs={7.5}>
-                                <Typography variant="body2" fontWeight={400}>
-                                  {p.name}
-                                </Typography>
-                                <Typography variant="body2">
-                                  {p.details}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={3}>
-                                <Typography variant="body2" fontWeight={400}>
-                                  {p.cost}
-                                </Typography>
-                              </Grid>
+                          <Grid container spacing={1}>
+                            <Grid item xs={9}>
+                              <Typography
+                                variant="body2"
+                                fontWeight={600}
+                                sx={{
+                                  textOverflow: "ellipsis",
+                                  overflow: "hidden",
+                                }}
+                              >
+                                {file.name}
+                              </Typography>
+                              <br />
+                              <Typography variant="body2" fontWeight={600}>
+                                Duration: {file.duration}{" "}
+                                {file.duration > 1 ? "mins" : "min"}
+                              </Typography>
+
+                              <Typography variant="body2" fontWeight={600}>
+                                Turnaround: 2hrs
+                              </Typography>
                             </Grid>
-                          ))}
+                            <Grid item xs={3}>
+                              <Typography
+                                variant="body2"
+                                fontWeight={400}
+                                textAlign={{ xs: "right", md: "left" }}
+                              >
+                                ${file.amount}
+                              </Typography>
+                            </Grid>
+                          </Grid>
+
+                          {/* //////////////////Additional Packages////////////////////////// */}
+                          <Grid container spacing={1} my={0.1}>
+                            <Grid item xs={1.5}>
+                              <Checkbox
+                                size="small"
+                                sx={{
+                                  color: "info.light",
+                                  "&.Mui-checked": {
+                                    color: "info.dark",
+                                  },
+                                }}
+                                onChange={(e, isChecked) => {
+                                  setFiles((prevState) => {
+                                    let foundIndex = prevState.findIndex(
+                                      (f) => f.id === file.id
+                                    );
+                                    prevState[foundIndex].express = isChecked;
+
+                                    return [...prevState];
+                                  });
+                                  calculateFileCost(file);
+                                }}
+                              />
+                            </Grid>
+                            <Grid item xs={7.5}>
+                              <Typography variant="body2" fontWeight={400}>
+                                Express Order
+                              </Typography>
+                              <Typography variant="body2">
+                                (+$0.3/min)
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={3}>
+                              <Typography
+                                variant="body2"
+                                fontWeight={400}
+                                textAlign={{ xs: "right", md: "left" }}
+                                display={!file.express && "none"}
+                              >
+                                ${file.duration * 0.3}
+                              </Typography>
+                            </Grid>
+                          </Grid>
+                          <Grid container spacing={1} my={0.1}>
+                            <Grid item xs={1.5}>
+                              <Checkbox
+                                size="small"
+                                sx={{
+                                  color: "info.light",
+                                  "&.Mui-checked": {
+                                    color: "info.dark",
+                                  },
+                                }}
+                                onChange={(e, isChecked) => {
+                                  setFiles((prevState) => {
+                                    let foundIndex = prevState.findIndex(
+                                      (f) => f.id === file.id
+                                    );
+                                    prevState[foundIndex].timeStamp = isChecked;
+
+                                    return [...prevState];
+                                  });
+                                  calculateFileCost(file);
+                                }}
+                              />
+                            </Grid>
+                            <Grid item xs={7.5}>
+                              <Typography variant="body2" fontWeight={400}>
+                                Timestamp
+                              </Typography>
+                              <Typography variant="body2">
+                                (+$0.4/min)
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={3}>
+                              <Typography
+                                variant="body2"
+                                fontWeight={400}
+                                textAlign={{ xs: "right", md: "left" }}
+                                display={!file.timeStamp && "none"}
+                              >
+                                ${file.duration * 0.4}
+                              </Typography>
+                            </Grid>
+                          </Grid>
+                          <Grid container spacing={1} my={0.1}>
+                            <Grid item xs={1.5}>
+                              <Checkbox
+                                size="small"
+                                sx={{
+                                  color: "info.light",
+                                  "&.Mui-checked": {
+                                    color: "info.dark",
+                                  },
+                                }}
+                                onChange={(e, isChecked) => {
+                                  setFiles((prevState) => {
+                                    let foundIndex = prevState.findIndex(
+                                      (f) => f.id === file.id
+                                    );
+                                    prevState[foundIndex].verbatim = isChecked;
+
+                                    return [...prevState];
+                                  });
+                                  calculateFileCost(file);
+                                }}
+                              />
+                            </Grid>
+                            <Grid item xs={7.5}>
+                              <Typography variant="body2" fontWeight={400}>
+                                Verbatim
+                              </Typography>
+                              <Typography variant="body2">
+                                (+$0.5/min)
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={3}>
+                              <Typography
+                                variant="body2"
+                                fontWeight={400}
+                                textAlign={{ xs: "right", md: "left" }}
+                                display={!file.verbatim && "none"}
+                              >
+                                ${file.duration * 0.5}
+                              </Typography>
+                            </Grid>
+                          </Grid>
+
+                          {/* //////////////////Additional Packages////////////////////////// */}
+
+                          <Grid
+                            container
+                            spacing={1}
+                            my={0.1}
+                            justifyContent="right"
+                          >
+                            <Grid item xs={3}>
+                              <Typography fontWeight={500}>Total</Typography>
+                            </Grid>
+                            <Grid item xs={3}>
+                              <Typography
+                                // variant="body2"
+                                fontWeight={500}
+                                textAlign={{ xs: "right", md: "left" }}
+                              >
+                                ${file.total}
+                              </Typography>
+                            </Grid>
+                          </Grid>
                         </AccordionDetails>
                       </Accordion>
                     </ListItem>
@@ -458,7 +641,7 @@ const TranscriptionOrder = () => {
                           variant="h5"
                           fontWeight={700}
                         >
-                          $200
+                          ${200}
                         </Typography>
                       </Grid>
                     </Grid>
@@ -477,7 +660,12 @@ const TranscriptionOrder = () => {
         {/* /////////////////////////////////////////////////// */}
       </Grid>
 
-      <AddLink open={openAddLink} close={() => setOpenAddLink(false)} />
+      <AddLink
+        open={openAddLink}
+        close={() => setOpenAddLink(false)}
+        files={files}
+        setFiles={setFiles}
+      />
     </Box>
   );
 };
