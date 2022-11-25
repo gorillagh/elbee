@@ -316,7 +316,7 @@ const TranscriptionOrder = () => {
                                   accordionExpanded === file.id && "none"
                                 }
                                 fontWeight={500}
-                                // variant="body2"
+                                variant="body2"
                                 sx={{
                                   // color: "text.secondary",
                                   maxHeight: "30px",
@@ -334,7 +334,7 @@ const TranscriptionOrder = () => {
                                 display={
                                   accordionExpanded === file.id && "none"
                                 }
-                                // variant="body2"
+                                variant="body2"
                                 fontWeight={500}
                                 sx={{
                                   // color: "text.secondary",
@@ -518,11 +518,13 @@ const TranscriptionOrder = () => {
                             justifyContent="right"
                           >
                             <Grid item xs={3}>
-                              <Typography fontWeight={500}>Total</Typography>
+                              <Typography variant="body2" fontWeight={500}>
+                                Total
+                              </Typography>
                             </Grid>
                             <Grid item xs={3}>
                               <Typography
-                                // variant="body2"
+                                variant="body2"
                                 fontWeight={500}
                                 textAlign={{ xs: "right", md: "left" }}
                               >
