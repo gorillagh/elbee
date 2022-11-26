@@ -15,9 +15,6 @@ const DragAndDropZone = ({
   onSubmit,
   files,
 }) => {
-  useEffect(() => {
-    console.log(files);
-  }, []);
   const {
     getRootProps,
     getInputProps,
@@ -65,6 +62,7 @@ const DragAndDropZone = ({
           <Box display="flex" alignItems="center" justifyContent="center">
             <Box width="60%">
               <ActionButton
+                sx={{ textTransform: "none" }}
                 variant={files && files.length ? "outlined" : "contained"}
                 text={files && files.length ? "Add Files" : "Upload File(s)"}
                 leftIcon="upload_file"

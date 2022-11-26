@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
@@ -23,13 +23,18 @@ import AddLink from "../../components/PopUps/AddLink";
 
 const TranscriptionOrder = () => {
   const [files, setFiles] = useState([]);
+  const [totalCost, setTotalCost] = useState();
   const [rejectedFiles, setRejectedFiles] = useState([]);
   const [openAddLink, setOpenAddLink] = useState(false);
   const uploadInputRef = useRef(null);
-  const [accordionExpanded, setAccordionExpanded] = React.useState(false);
+  const [accordionExpanded, setAccordionExpanded] = React.useState([]);
 
   const dispatch = useDispatch();
   const { stepper } = useSelector((state) => ({ ...state }));
+
+  useEffect(() => {
+    files && files.length && calculateTotalCost(files);
+  }, [files]);
 
   const getUploadParams = ({ meta }) => {
     const url = "https://httpbin.org/post";
@@ -63,48 +68,60 @@ const TranscriptionOrder = () => {
 
       return [...prevState];
     });
-    console.log("file cost ----->", file.total);
+  };
+  const calculateTotalCost = (files) => {
+    var total = 0;
+    if (files && files.length) {
+      for (var i in files) {
+        total += Number(files[i].total);
+      }
+      setTotalCost((Math.round(total * 100) / 100).toFixed(2));
+    }
   };
 
-  const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
-    console.log(acceptedFiles);
-    console.log(rejectedFiles);
-    acceptedFiles.map((file) => {
-      console.log(file);
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        console.log("Event---->", e.target.result);
+  const onDrop = useCallback(
+    (acceptedFiles, rejectedFiles) => {
+      console.log(acceptedFiles);
+      console.log(rejectedFiles);
+      acceptedFiles.map((file) => {
+        console.log(file);
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          console.log("Event---->", e.target);
 
-        /////////send file to backend ///////
+          /////////send file to backend ///////
 
-        setFiles((prevState) => [
-          ...prevState,
-          {
-            id: cuid(),
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            duration: 2,
-            amount: 50,
-            src: e.target.result,
-            express: false,
-            verbatim: false,
-            timeStamp: false,
-            total: 50,
-          },
-        ]);
-      };
-      reader.readAsDataURL(file);
+          setFiles((prevState) => [
+            ...prevState,
+            {
+              id: cuid(),
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              duration: 2,
+              amount: 50,
+              src: e.target.result,
+              express: false,
+              verbatim: false,
+              timeStamp: false,
+              total: 50,
+            },
+          ]);
+        };
+        reader.readAsDataURL(file);
 
-      return file;
-    });
-    rejectedFiles.map((file) =>
-      setRejectedFiles((prev) => [
-        ...prev,
-        { name: file.path, size: file.size },
-      ])
-    );
-  }, []);
+        return file;
+      });
+      rejectedFiles.map((file) =>
+        setRejectedFiles((prev) => [
+          ...prev,
+          { name: file.path, size: file.size },
+        ])
+      );
+      calculateTotalCost(files);
+    },
+    [files]
+  );
 
   const handleMobileUpload = (e) => {
     let files = e.target.files;
@@ -276,7 +293,19 @@ const TranscriptionOrder = () => {
                       <Accordion
                         sx={{ width: "100%" }}
                         onChange={(event, isExpanded) => {
-                          setAccordionExpanded(isExpanded ? file.id : false);
+                          if (isExpanded) {
+                            setAccordionExpanded((prevState) => [
+                              ...prevState,
+                              file.id,
+                            ]);
+                          } else {
+                            setAccordionExpanded((prevState) => {
+                              prevState = prevState.filter(
+                                (item) => item !== file.id
+                              );
+                              return [...prevState];
+                            });
+                          }
                         }}
                       >
                         <AccordionSummary
@@ -313,7 +342,7 @@ const TranscriptionOrder = () => {
                             <Grid item xs={7.5}>
                               <Typography
                                 display={
-                                  accordionExpanded === file.id && "none"
+                                  accordionExpanded.includes(file.id) && "none"
                                 }
                                 fontWeight={500}
                                 variant="body2"
@@ -332,7 +361,7 @@ const TranscriptionOrder = () => {
                             <Grid item xs={3}>
                               <Typography
                                 display={
-                                  accordionExpanded === file.id && "none"
+                                  accordionExpanded.includes(file.id) && "none"
                                 }
                                 variant="body2"
                                 fontWeight={500}
@@ -348,19 +377,19 @@ const TranscriptionOrder = () => {
                           </Grid>
                         </AccordionSummary>
                         <AccordionDetails sx={{ px: 3 }}>
+                          <Typography
+                            variant="body2"
+                            fontWeight={600}
+                            sx={{
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {file.name}
+                          </Typography>
+                          <br />
                           <Grid container spacing={1}>
                             <Grid item xs={9}>
-                              <Typography
-                                variant="body2"
-                                fontWeight={600}
-                                sx={{
-                                  textOverflow: "ellipsis",
-                                  overflow: "hidden",
-                                }}
-                              >
-                                {file.name}
-                              </Typography>
-                              <br />
                               <Typography variant="body2" fontWeight={600}>
                                 Duration: {file.duration}{" "}
                                 {file.duration > 1 ? "mins" : "min"}
@@ -402,6 +431,7 @@ const TranscriptionOrder = () => {
                                     return [...prevState];
                                   });
                                   calculateFileCost(file);
+                                  calculateTotalCost(files);
                                 }}
                               />
                             </Grid>
@@ -444,6 +474,7 @@ const TranscriptionOrder = () => {
                                     return [...prevState];
                                   });
                                   calculateFileCost(file);
+                                  calculateTotalCost(files);
                                 }}
                               />
                             </Grid>
@@ -486,6 +517,7 @@ const TranscriptionOrder = () => {
                                     return [...prevState];
                                   });
                                   calculateFileCost(file);
+                                  calculateTotalCost(files);
                                 }}
                               />
                             </Grid>
@@ -643,7 +675,7 @@ const TranscriptionOrder = () => {
                           variant="h5"
                           fontWeight={700}
                         >
-                          ${200}
+                          ${totalCost}
                         </Typography>
                       </Grid>
                     </Grid>
