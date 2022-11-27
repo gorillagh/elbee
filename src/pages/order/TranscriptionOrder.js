@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import { toast } from "react-toastify";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -20,6 +22,7 @@ import Checkbox from "@mui/material/Checkbox";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import AddLink from "../../components/PopUps/AddLink";
+import { uploadFile } from "../../serverFunctions/order";
 
 const TranscriptionOrder = () => {
   const [files, setFiles] = useState([]);
@@ -27,7 +30,8 @@ const TranscriptionOrder = () => {
   const [rejectedFiles, setRejectedFiles] = useState([]);
   const [openAddLink, setOpenAddLink] = useState(false);
   const uploadInputRef = useRef(null);
-  const [accordionExpanded, setAccordionExpanded] = React.useState([]);
+  const [accordionExpanded, setAccordionExpanded] = useState([]);
+  const [progress, setProgress] = useState();
 
   const dispatch = useDispatch();
   const { stepper } = useSelector((state) => ({ ...state }));
@@ -86,27 +90,22 @@ const TranscriptionOrder = () => {
       acceptedFiles.map((file) => {
         console.log(file);
         const reader = new FileReader();
-        reader.onload = function (e) {
+        reader.onload = async function (e) {
           console.log("Event---->", e.target);
 
           /////////send file to backend ///////
+          const uploadedFile = await uploadFile({
+            id: cuid(),
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            src: e.target.result,
+            express: false,
+            verbatim: false,
+            timeStamp: false,
+          });
 
-          setFiles((prevState) => [
-            ...prevState,
-            {
-              id: cuid(),
-              name: file.name,
-              type: file.type,
-              size: file.size,
-              duration: 2,
-              amount: 50,
-              src: e.target.result,
-              express: false,
-              verbatim: false,
-              timeStamp: false,
-              total: 50,
-            },
-          ]);
+          setFiles((prevState) => [...prevState, uploadedFile.data]);
         };
         reader.readAsDataURL(file);
 
@@ -123,39 +122,56 @@ const TranscriptionOrder = () => {
     [files]
   );
 
-  const handleMobileUpload = (e) => {
-    let files = e.target.files;
-    console.log("Files--->", files);
-    for (let i = 0; i < files.length; i++) {
-      if (files[i].type.includes("image")) {
-        setRejectedFiles((prevState) => [
-          ...prevState,
-          { name: files[i].name, size: files[i].size },
-        ]);
-      } else {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          console.log("Event---->", e.target);
-          setFiles((prevState) => [
+  const handleMobileUpload = async (e) => {
+    try {
+      let files = e.target.files;
+      console.log("Files--->", files);
+      for (let i = 0; i < files.length; i++) {
+        if (files[i].type.includes("image")) {
+          setRejectedFiles((prevState) => [
             ...prevState,
-            {
-              id: cuid(),
-              name: files[i].name,
-              type: files[i].type,
-              size: files[i].size,
-              duration: 2,
-              amount: 50,
-              src: e.target.result,
-              express: false,
-              verbatim: false,
-              timeStamp: false,
-              total: 50,
-            },
+            { name: files[i].name, size: files[i].size },
           ]);
-        };
-        reader.readAsDataURL(files[i]);
+        } else {
+          // const fileData = new FormData();
+          // fileData.append("file", files[i]);
+          // const { data } = await axios.post(
+          //   `${process.env.REACT_APP_API_URL}/uploadfile`,
+          //   fileData,
+          //   {
+          //     onUploadProgress: (e) => {
+          //       setProgress(Math.round((100 * e.loaded) / e.total));
+          //     },
+          //   }
+          // );
+          // console.log(data);
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            console.log("Event---->", e.target);
+            setFiles((prevState) => [
+              ...prevState,
+              {
+                id: cuid(),
+                name: files[i].name,
+                type: files[i].type,
+                size: files[i].size,
+                duration: 2,
+                amount: 50,
+                src: e.target.result,
+                express: false,
+                verbatim: false,
+                timeStamp: false,
+                total: 50,
+              },
+            ]);
+          };
+          reader.readAsDataURL(files[i]);
+        }
+        return files[i];
       }
-      // return files[i];
+    } catch (error) {
+      console.log(error);
+      toast.error("File upload failed");
     }
   };
 

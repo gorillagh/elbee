@@ -24,7 +24,7 @@ const DragAndDropZone = ({
   } = useDropzone({
     accept: {
       "audio/*": [],
-      "video/*": [],
+      "video/*": [".mkv"],
     },
     maxSize: 5368709120,
     onDrop,
