@@ -42,7 +42,7 @@ const AddLink = (props) => {
         name: url,
         type: type || "video",
         size: size || "",
-        amount: duration * 1.0,
+        cost: duration * 1.0,
         duration,
         src: url,
         express: false,

@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+import { v4 as uuid } from "uuid";
 import { toast } from "react-toastify";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
@@ -23,6 +24,7 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import AddLink from "../../components/PopUps/AddLink";
 import { uploadFile } from "../../serverFunctions/order";
+import { CircularProgress } from "@mui/material";
 
 const TranscriptionOrder = () => {
   const [files, setFiles] = useState([]);
@@ -32,6 +34,8 @@ const TranscriptionOrder = () => {
   const uploadInputRef = useRef(null);
   const [accordionExpanded, setAccordionExpanded] = useState([]);
   const [progress, setProgress] = useState();
+  const [filesInQueue, setFilesInQueue] = useState();
+  const [totalLoading, setTotalLoading] = useState();
 
   const dispatch = useDispatch();
   const { stepper } = useSelector((state) => ({ ...state }));
@@ -39,6 +43,9 @@ const TranscriptionOrder = () => {
   useEffect(() => {
     files && files.length && calculateTotalCost(files);
   }, [files]);
+  useEffect(() => {
+    console.log(progress);
+  }, [progress]);
 
   const getUploadParams = ({ meta }) => {
     const url = "https://httpbin.org/post";
@@ -59,7 +66,7 @@ const TranscriptionOrder = () => {
 
   const calculateFileCost = (file) => {
     file.total =
-      Number(file.amount) +
+      Number(file.cost) +
       (file.express ? Number(file.duration) * 0.3 : 0) +
       (file.verbatim ? Number(file.duration) * 0.5 : 0) +
       (file.timeStamp ? Number(file.duration) * 0.4 : 0);
@@ -83,49 +90,56 @@ const TranscriptionOrder = () => {
     }
   };
 
-  const onDrop = useCallback(
-    (acceptedFiles, rejectedFiles) => {
+  const onDrop = useCallback(async (acceptedFiles, rejectedFiles) => {
+    try {
       console.log(acceptedFiles);
       console.log(rejectedFiles);
-      acceptedFiles.map((file) => {
-        console.log(file);
-        const reader = new FileReader();
-        reader.onload = async function (e) {
-          console.log("Event---->", e.target);
-
-          /////////send file to backend ///////
-          const uploadedFile = await uploadFile({
-            id: cuid(),
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            src: e.target.result,
-            express: false,
-            verbatim: false,
-            timeStamp: false,
-          });
-
-          setFiles((prevState) => [...prevState, uploadedFile.data]);
-        };
-        reader.readAsDataURL(file);
-
-        return file;
-      });
       rejectedFiles.map((file) =>
         setRejectedFiles((prev) => [
           ...prev,
           { name: file.path, size: file.size },
         ])
       );
-      calculateTotalCost(files);
-    },
-    [files]
-  );
+      setFilesInQueue(acceptedFiles.length - 1);
+      acceptedFiles.map(async (file) => {
+        let fileId = uuid();
+        setFiles((prevState) => [
+          ...prevState,
+          {
+            id: fileId,
+            name: file.name,
+          },
+        ]);
+        const fileData = new FormData();
+        fileData.append("file", file, `${fileId}/${file.name}`);
+        const { data } = await axios.post(
+          `${process.env.REACT_APP_API_URL}/uploadfile/transcription`,
+          fileData,
+          {
+            onUploadProgress: (e) => {
+              setProgress(Math.round((100 * e.loaded) / e.total));
+            },
+          }
+        );
+        console.log(data);
+        setFiles((prevState) => {
+          let foundIndex = prevState.findIndex((f) => f.id === data.id);
+          prevState[foundIndex] = data;
+
+          return [...prevState];
+        });
+        setFilesInQueue((prevState) => prevState - 1);
+      });
+    } catch (error) {
+      console.log(error);
+      toast.error("File upload failed");
+    }
+  }, []);
 
   const handleMobileUpload = async (e) => {
     try {
+      let acceptedFiles = [];
       let files = e.target.files;
-      console.log("Files--->", files);
       for (let i = 0; i < files.length; i++) {
         if (files[i].type.includes("image")) {
           setRejectedFiles((prevState) => [
@@ -133,42 +147,40 @@ const TranscriptionOrder = () => {
             { name: files[i].name, size: files[i].size },
           ]);
         } else {
-          // const fileData = new FormData();
-          // fileData.append("file", files[i]);
-          // const { data } = await axios.post(
-          //   `${process.env.REACT_APP_API_URL}/uploadfile`,
-          //   fileData,
-          //   {
-          //     onUploadProgress: (e) => {
-          //       setProgress(Math.round((100 * e.loaded) / e.total));
-          //     },
-          //   }
-          // );
-          // console.log(data);
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            console.log("Event---->", e.target);
-            setFiles((prevState) => [
-              ...prevState,
-              {
-                id: cuid(),
-                name: files[i].name,
-                type: files[i].type,
-                size: files[i].size,
-                duration: 2,
-                amount: 50,
-                src: e.target.result,
-                express: false,
-                verbatim: false,
-                timeStamp: false,
-                total: 50,
-              },
-            ]);
-          };
-          reader.readAsDataURL(files[i]);
+          acceptedFiles.push(files[i]);
         }
-        return files[i];
       }
+      setFilesInQueue(files.length - 1);
+      console.log("Files--->", files);
+      acceptedFiles.map(async (file, i) => {
+        let fileId = uuid();
+        setFiles((prevState) => [
+          ...prevState,
+          {
+            id: fileId,
+            name: file.name,
+          },
+        ]);
+        const fileData = new FormData();
+        fileData.append("file", file, `${fileId}/${file.name}`);
+        const { data } = await axios.post(
+          `${process.env.REACT_APP_API_URL}/uploadfile/transcription`,
+          fileData,
+          {
+            onUploadProgress: (e) => {
+              setProgress(Math.round((100 * e.loaded) / e.total));
+            },
+          }
+        );
+        console.log(data);
+        setFiles((prevState) => {
+          let foundIndex = prevState.findIndex((f) => f.id === data.id);
+          prevState[foundIndex] = data;
+
+          return [...prevState];
+        });
+        setFilesInQueue((prevState) => prevState - 1);
+      });
     } catch (error) {
       console.log(error);
       toast.error("File upload failed");
@@ -307,6 +319,8 @@ const TranscriptionOrder = () => {
                   {files.map((file, i) => (
                     <ListItem key={file.id}>
                       <Accordion
+                        disabled={file.total ? false : true}
+                        // disabled
                         sx={{ width: "100%" }}
                         onChange={(event, isExpanded) => {
                           if (isExpanded) {
@@ -326,7 +340,13 @@ const TranscriptionOrder = () => {
                       >
                         <AccordionSummary
                           expandIcon={
-                            <Icon sx={{ color: "info.dark" }}>expand_more</Icon>
+                            file.total ? (
+                              <Icon sx={{ color: "info.dark" }}>
+                                expand_more
+                              </Icon>
+                            ) : (
+                              <CircularProgress size={20} thickness={4} />
+                            )
                           }
                           aria-controls="panel1bh-content"
                           id="panel1bh-header"
@@ -387,7 +407,12 @@ const TranscriptionOrder = () => {
                                   overflow: "hidden",
                                 }}
                               >
-                                ${file.total}
+                                {file.total
+                                  ? "$" +
+                                    (
+                                      Math.round(file.total * 100) / 100
+                                    ).toFixed(2)
+                                  : ""}
                               </Typography>
                             </Grid>
                           </Grid>
@@ -421,7 +446,8 @@ const TranscriptionOrder = () => {
                                 fontWeight={400}
                                 textAlign={{ xs: "right", md: "left" }}
                               >
-                                ${file.amount}
+                                $
+                                {(Math.round(file.cost * 100) / 100).toFixed(2)}
                               </Typography>
                             </Grid>
                           </Grid>
@@ -466,7 +492,10 @@ const TranscriptionOrder = () => {
                                 textAlign={{ xs: "right", md: "left" }}
                                 display={!file.express && "none"}
                               >
-                                ${file.duration * 0.3}
+                                $
+                                {(
+                                  Math.round(file.duration * 0.3 * 100) / 100
+                                ).toFixed(2)}
                               </Typography>
                             </Grid>
                           </Grid>
@@ -509,7 +538,10 @@ const TranscriptionOrder = () => {
                                 textAlign={{ xs: "right", md: "left" }}
                                 display={!file.timeStamp && "none"}
                               >
-                                ${file.duration * 0.4}
+                                $
+                                {(
+                                  Math.round(file.duration * 0.4 * 100) / 100
+                                ).toFixed(2)}
                               </Typography>
                             </Grid>
                           </Grid>
@@ -552,7 +584,10 @@ const TranscriptionOrder = () => {
                                 textAlign={{ xs: "right", md: "left" }}
                                 display={!file.verbatim && "none"}
                               >
-                                ${file.duration * 0.5}
+                                $
+                                {(
+                                  Math.round(file.duration * 0.5 * 100) / 100
+                                ).toFixed(2)}
                               </Typography>
                             </Grid>
                           </Grid>
@@ -576,7 +611,10 @@ const TranscriptionOrder = () => {
                                 fontWeight={500}
                                 textAlign={{ xs: "right", md: "left" }}
                               >
-                                ${file.total}
+                                $
+                                {(Math.round(file.total * 100) / 100).toFixed(
+                                  2
+                                )}
                               </Typography>
                             </Grid>
                           </Grid>
@@ -644,7 +682,19 @@ const TranscriptionOrder = () => {
                 </Box>
               </Grid>
             </Grid>
-
+            {filesInQueue > 0 ? (
+              <Typography
+                variant="body2"
+                color="info.dark"
+                textAlign="center"
+                fontWeight={500}
+              >
+                +{filesInQueue} {filesInQueue > 1 ? "files" : "file"} in
+                queue...
+              </Typography>
+            ) : (
+              ""
+            )}
             {/* <Grid container>
               <Grid item xs={6} sx={{ textAlign: "left" }}>
                 <ActionButton
@@ -691,15 +741,21 @@ const TranscriptionOrder = () => {
                           variant="h5"
                           fontWeight={700}
                         >
-                          ${totalCost}
+                          {filesInQueue > -1 ? (
+                            <CircularProgress size={20} thickness={4} />
+                          ) : (
+                            "$" + totalCost
+                          )}
                         </Typography>
                       </Grid>
                     </Grid>
 
                     <ActionButton
+                      disabled={filesInQueue > -1}
                       my={0}
                       text="Checkout"
                       rightIcon="arrow_forward"
+                      onClick={handleNext}
                     />
                   </Card>
                 </Grid>
