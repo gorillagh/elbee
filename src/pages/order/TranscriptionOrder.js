@@ -171,7 +171,7 @@ const TranscriptionOrder = () => {
             //   setProgress(Math.round((100 * e.loaded) / e.total));
             // },
             headers: {
-              "Access-Control-Allow-Origin": "https://elbee.vercel.app",
+              "Access-Control-Allow-Origin": "*",
             },
           }
         );
