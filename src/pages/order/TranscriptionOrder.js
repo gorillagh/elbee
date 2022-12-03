@@ -170,6 +170,9 @@ const TranscriptionOrder = () => {
             onUploadProgress: (e) => {
               setProgress(Math.round((100 * e.loaded) / e.total));
             },
+            headers: {
+              "Access-Control-Allow-Origin": "https://elbee.vercel.app/",
+            },
           }
         );
         console.log(data);
