@@ -167,12 +167,12 @@ const TranscriptionOrder = () => {
           `${process.env.REACT_APP_API_URL}/uploadfile/transcription`,
           fileData,
           {
-            // onUploadProgress: (e) => {
-            //   setProgress(Math.round((100 * e.loaded) / e.total));
-            // },
-            headers: {
-              "Access-Control-Allow-Origin": "*",
+            onUploadProgress: (e) => {
+              setProgress(Math.round((100 * e.loaded) / e.total));
             },
+            // headers: {
+            //   "Access-Control-Allow-Origin": "*",
+            // },
           }
         );
         console.log(data);
