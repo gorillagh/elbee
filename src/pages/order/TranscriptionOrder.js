@@ -163,19 +163,21 @@ const TranscriptionOrder = () => {
         ]);
         const fileData = new FormData();
         fileData.append("file", file, `${fileId}/${file.name}`);
-        const { data } = await axios.post(
+        // const { data } = await axios.post(
+        //   `${process.env.REACT_APP_API_URL}/uploadfile/transcription`,
+        //   fileData,
+        //   {
+        //     onUploadProgress: (e) => {
+        //       setProgress(Math.round((100 * e.loaded) / e.total));
+        //     },
+        //   }
+        // );
+        const data = await fetch(
           `${process.env.REACT_APP_API_URL}/uploadfile/transcription`,
-          fileData,
-          {
-            onUploadProgress: (e) => {
-              setProgress(Math.round((100 * e.loaded) / e.total));
-            },
-            // headers: {
-            //   "Access-Control-Allow-Origin": "*",
-            // },
-          }
-        );
-        console.log(data);
+          { method: "POST", body: fileData }
+        ).then((res) => res.json());
+
+        // console.log(data);
         setFiles((prevState) => {
           let foundIndex = prevState.findIndex((f) => f.id === data.id);
           prevState[foundIndex] = data;
