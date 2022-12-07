@@ -174,7 +174,7 @@ const TranscriptionOrder = () => {
         // );
         const data = await fetch(
           `${process.env.REACT_APP_API_URL}/uploadfile/transcription`,
-          { method: "POST", body: fileData }
+          { method: "POST", body: fileData, mode: "no-cors" }
         ).then((res) => res.json());
 
         console.log(data);
