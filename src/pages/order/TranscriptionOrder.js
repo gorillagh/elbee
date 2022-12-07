@@ -177,7 +177,7 @@ const TranscriptionOrder = () => {
           { method: "POST", body: fileData }
         ).then((res) => res.json());
 
-        // console.log(data);
+        console.log(data);
         setFiles((prevState) => {
           let foundIndex = prevState.findIndex((f) => f.id === data.id);
           prevState[foundIndex] = data;
