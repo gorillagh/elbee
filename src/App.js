@@ -38,6 +38,7 @@ import FileSubmission from "./pages/order/FileSubmission";
 import TranscriptionOrder from "./pages/order/TranscriptionOrder";
 import CaptioningOrder from "./pages/order/CaptioningOrder";
 import TranslationOrder from "./pages/order/TranslationOrder";
+import TranscriptionPayment from "./pages/payment/TranscriptionPayment";
 
 let theme = createTheme({
   palette: {
@@ -153,6 +154,11 @@ const App = () => {
             exact
             path="/order/transcription"
             element={<TranscriptionOrder />}
+          />
+          <Route
+            exact
+            path="/payment/transcription/:orderId"
+            element={<TranscriptionPayment />}
           />
           <Route exact path="/order/captioning" element={<CaptioningOrder />} />
           <Route

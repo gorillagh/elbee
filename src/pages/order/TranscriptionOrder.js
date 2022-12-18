@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { v4 as uuid } from "uuid";
 import { toast } from "react-toastify";
@@ -23,8 +24,10 @@ import Checkbox from "@mui/material/Checkbox";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import AddLink from "../../components/PopUps/AddLink";
-import { uploadFile } from "../../serverFunctions/order";
-import { CircularProgress } from "@mui/material";
+import { saveOrderToDb, uploadFile } from "../../serverFunctions/order";
+import { CircularProgress, LinearProgress } from "@mui/material";
+import LinearProgressWithPercentage from "../../components/Feedbacks/LinearProgressWithPercentage";
+import SignIn from "../../components/PopUps/SignIn";
 
 const TranscriptionOrder = () => {
   const [files, setFiles] = useState([]);
@@ -34,18 +37,44 @@ const TranscriptionOrder = () => {
   const uploadInputRef = useRef(null);
   const [accordionExpanded, setAccordionExpanded] = useState([]);
   const [progress, setProgress] = useState();
-  const [filesInQueue, setFilesInQueue] = useState();
-  const [totalLoading, setTotalLoading] = useState();
+  const [filesInQueue, setFilesInQueue] = useState(0);
+  const [openSignIn, setOpenSignIn] = useState(false);
+  const [order, setOrder] = useState({});
+  const [loading, setLoading] = useState(false);
 
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { stepper } = useSelector((state) => ({ ...state }));
+  const { stepper, user } = useSelector((state) => ({ ...state }));
+
+  useEffect(() => {
+    async function fetchFiles() {
+      if (window.localStorage.getItem("elbeeFiles")) {
+        const storedFiles = await JSON.parse(
+          window.localStorage.getItem("elbeeFiles")
+        );
+        await storedFiles.map(
+          (file, i) =>
+            (file.total =
+              Number(file.cost) +
+              (file.express ? Number(file.duration) * 0.3 : 0) +
+              (file.verbatim ? Number(file.duration) * 0.5 : 0) +
+              (file.timeStamp ? Number(file.duration) * 0.4 : 0))
+        );
+        setFiles(storedFiles);
+      }
+    }
+    fetchFiles();
+  }, []);
 
   useEffect(() => {
     files && files.length && calculateTotalCost(files);
   }, [files]);
   useEffect(() => {
-    console.log(progress);
-  }, [progress]);
+    dispatch({
+      type: "STEPPER",
+      payload: 0,
+    });
+  }, []);
 
   const getUploadParams = ({ meta }) => {
     const url = "https://httpbin.org/post";
@@ -125,9 +154,10 @@ const TranscriptionOrder = () => {
         setFiles((prevState) => {
           let foundIndex = prevState.findIndex((f) => f.id === data.id);
           prevState[foundIndex] = data;
-
+          window.localStorage.setItem("elbeeFiles", JSON.stringify(prevState));
           return [...prevState];
         });
+
         setFilesInQueue((prevState) => prevState - 1);
       });
     } catch (error) {
@@ -150,7 +180,7 @@ const TranscriptionOrder = () => {
           acceptedFiles.push(files[i]);
         }
       }
-      setFilesInQueue(files.length - 1);
+      setFilesInQueue((prevState) => Number(prevState) + files.length);
       console.log("Files--->", files);
       acceptedFiles.map(async (file, i) => {
         let fileId = uuid();
@@ -163,24 +193,36 @@ const TranscriptionOrder = () => {
         ]);
         const fileData = new FormData();
         fileData.append("file", file, `${fileId}/${file.name}`);
-        // const { data } = await axios.post(
-        //   `${process.env.REACT_APP_API_URL}/uploadfile/transcription`,
-        //   fileData,
-        //   {
-        //     onUploadProgress: (e) => {
-        //       setProgress(Math.round((100 * e.loaded) / e.total));
-        //     },
-        //   }
-        // );
-        const data = await fetch(
-          `${process.env.REACT_APP_API_URL}/uploadfile/transcription`,
-          { method: "POST", body: fileData, mode: "no-cors" }
-        ).then((res) => res.json());
+        // const eventSource = new EventSource(`${process.env.REACT_APP_API_URL}`);
 
-        console.log(data);
+        const { data } = await axios.post(
+          `${process.env.REACT_APP_API_URL}/uploadfile/transcription`,
+          fileData
+          // {
+          //   onUploadProgress: (e) => {
+          //     let foundIndex = acceptedFiles.findIndex((f) => f.id === file.id);
+          //     acceptedFiles[foundIndex].uploadProgress = Math.round(
+          //       (e.loaded / e.total) * 100
+          //     );
+          //     console.log(acceptedFiles);
+          // setProgress(Math.round((e.loaded / e.total) * 100));
+          // console.log(Math.round((e.loaded / e.total) * 100));
+          //   },
+          // }
+        );
+        // eventSource.onmessage = (e) => {
+        //   console.log(e.data);
+        // };
+        setProgress(data.progress);
+        // const data = await fetch(
+        //   `${process.env.REACT_APP_API_URL}/uploadfile/transcription`,
+        //   { method: "POST", body: fileData, mode: "no-cors" }
+        // ).then((res) => res.json());
+
         setFiles((prevState) => {
           let foundIndex = prevState.findIndex((f) => f.id === data.id);
           prevState[foundIndex] = data;
+          window.localStorage.setItem("elbeeFiles", JSON.stringify(prevState));
 
           return [...prevState];
         });
@@ -199,7 +241,24 @@ const TranscriptionOrder = () => {
     });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    setLoading(true);
+    let userOrder = {
+      id: uuid(),
+      files,
+      type: "transcription",
+    };
+    setOrder(userOrder);
+    if (!user) {
+      setOpenSignIn(true);
+    }
+    if (user) {
+      userOrder.userId = await user._id;
+      setOrder(userOrder);
+      await saveOrderToDb(userOrder);
+      navigate(`/payment/transcription/${userOrder.id}`);
+    }
+
     dispatch({
       type: "STEPPER",
       payload: stepper + 1,
@@ -350,7 +409,8 @@ const TranscriptionOrder = () => {
                                 expand_more
                               </Icon>
                             ) : (
-                              <CircularProgress size={20} thickness={4} />
+                              ""
+                              // <CircularProgress size={20} thickness={4} />
                             )
                           }
                           aria-controls="panel1bh-content"
@@ -372,6 +432,10 @@ const TranscriptionOrder = () => {
                                       (f) => f.id !== file.id
                                     );
                                     setFiles(filteredFiles);
+                                    window.localStorage.setItem(
+                                      "elbeeFiles",
+                                      JSON.stringify(filteredFiles)
+                                    );
                                   }}
                                   fontSize="small"
                                   sx={{ color: "error.light" }}
@@ -398,6 +462,14 @@ const TranscriptionOrder = () => {
                               >
                                 {file.name}
                               </Typography>
+                              {file.total ? (
+                                ""
+                              ) : (
+                                <LinearProgress />
+                                // <LinearProgressWithPercentage
+                                //   value={file.uploadProgress}
+                                // />
+                              )}
                             </Grid>
                             <Grid item xs={3}>
                               <Typography
@@ -461,6 +533,7 @@ const TranscriptionOrder = () => {
                           <Grid container spacing={1} my={0.1}>
                             <Grid item xs={1.5}>
                               <Checkbox
+                                checked={file.express}
                                 size="small"
                                 sx={{
                                   color: "info.light",
@@ -474,7 +547,10 @@ const TranscriptionOrder = () => {
                                       (f) => f.id === file.id
                                     );
                                     prevState[foundIndex].express = isChecked;
-
+                                    window.localStorage.setItem(
+                                      "elbeeFiles",
+                                      JSON.stringify(prevState)
+                                    );
                                     return [...prevState];
                                   });
                                   calculateFileCost(file);
@@ -507,6 +583,7 @@ const TranscriptionOrder = () => {
                           <Grid container spacing={1} my={0.1}>
                             <Grid item xs={1.5}>
                               <Checkbox
+                                checked={file.timeStamp}
                                 size="small"
                                 sx={{
                                   color: "info.light",
@@ -520,7 +597,10 @@ const TranscriptionOrder = () => {
                                       (f) => f.id === file.id
                                     );
                                     prevState[foundIndex].timeStamp = isChecked;
-
+                                    window.localStorage.setItem(
+                                      "elbeeFiles",
+                                      JSON.stringify(prevState)
+                                    );
                                     return [...prevState];
                                   });
                                   calculateFileCost(file);
@@ -560,13 +640,17 @@ const TranscriptionOrder = () => {
                                     color: "info.dark",
                                   },
                                 }}
+                                checked={file.verbatim}
                                 onChange={(e, isChecked) => {
                                   setFiles((prevState) => {
                                     let foundIndex = prevState.findIndex(
                                       (f) => f.id === file.id
                                     );
                                     prevState[foundIndex].verbatim = isChecked;
-
+                                    window.localStorage.setItem(
+                                      "elbeeFiles",
+                                      JSON.stringify(prevState)
+                                    );
                                     return [...prevState];
                                   });
                                   calculateFileCost(file);
@@ -694,8 +778,8 @@ const TranscriptionOrder = () => {
                 textAlign="center"
                 fontWeight={500}
               >
-                +{filesInQueue} {filesInQueue > 1 ? "files" : "file"} in
-                queue...
+                upolading {filesInQueue} {filesInQueue > 1 ? "files" : "file"}
+                ...
               </Typography>
             ) : (
               ""
@@ -746,17 +830,18 @@ const TranscriptionOrder = () => {
                           variant="h5"
                           fontWeight={700}
                         >
-                          {filesInQueue > -1 ? (
+                          {filesInQueue > 0 || !totalCost ? (
                             <CircularProgress size={20} thickness={4} />
                           ) : (
-                            "$" + totalCost
+                            `$${totalCost}`
+                            // "$" + totalCost
                           )}
                         </Typography>
                       </Grid>
                     </Grid>
 
                     <ActionButton
-                      disabled={filesInQueue > -1}
+                      disabled={filesInQueue > 0}
                       my={0}
                       text="Checkout"
                       rightIcon="arrow_forward"
@@ -776,6 +861,12 @@ const TranscriptionOrder = () => {
         close={() => setOpenAddLink(false)}
         files={files}
         setFiles={setFiles}
+      />
+      <SignIn
+        open={openSignIn}
+        close={() => setOpenSignIn(false)}
+        order={order}
+        setOrder={setOrder}
       />
     </Box>
   );

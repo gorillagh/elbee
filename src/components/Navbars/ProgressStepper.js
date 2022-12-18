@@ -12,7 +12,8 @@ import VideoLabelIcon from "@mui/icons-material/VideoLabel";
 import StepConnector, {
   stepConnectorClasses,
 } from "@mui/material/StepConnector";
-import { Box } from "@mui/material";
+import Box from "@mui/material/Box";
+import { useDispatch, useSelector } from "react-redux";
 
 const QontoConnector = styled(StepConnector)(({ theme }) => ({
   [`&.${stepConnectorClasses.alternativeLabel}`]: {
@@ -91,10 +92,15 @@ QontoStepIcon.propTypes = {
    */
   completed: PropTypes.bool,
 };
-
-const steps = ["Add files", "Sign in", "Pay"];
+let steps = ["Add files", "Pay"];
 
 export default function ProgressStepper(props) {
+  const { user } = useSelector((state) => ({ ...state }));
+  // if (!user) {
+  //   steps = ["Add files", "Sign in", "Pay"];
+  // } else {
+  //   steps = ["Add files", "Pay"];
+  // }
   return (
     <Box>
       <Stepper

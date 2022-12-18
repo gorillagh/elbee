@@ -169,35 +169,27 @@ const Login = () => {
           <PageTitle title="Log In" />
           {/* <Subtitle title="Log In" /> */}
           <ActionButton
-            color="secondary"
+            color="primary"
+            my={1}
+            variant="outlined"
             onClick={googleSignIn}
             text={
               <>
                 <Icon sx={{ mr: 2 }}>
                   {" "}
-                  <img src={googleSignInIcon} />{" "}
+                  <img alt="google" src={googleSignInIcon} />{" "}
                 </Icon>
                 With Google
               </>
             }
-            backgroundColor="#E34133"
+            // backgroundColor="#E34133"
           />
 
-          <Typography
-            sx={{ my: 1 }}
-            variant="body2"
-            color="text.secondary"
-            align="center"
-          >
+          <Typography sx={{ my: 1 }} color="text.secondary" align="center">
             OR
           </Typography>
 
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            noValidate
-            sx={{ mt: 1 }}
-          >
+          <Box component="form" onSubmit={handleSubmit} noValidate>
             <TextField
               margin="normal"
               required
