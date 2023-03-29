@@ -143,12 +143,12 @@ const TranscriptionOrder = () => {
         fileData.append("file", file, `${fileId}/${file.name}`);
         const { data } = await axios.post(
           `${process.env.REACT_APP_API_URL}/uploadfile/transcription`,
-          fileData,
-          {
-            onUploadProgress: (e) => {
-              setProgress(Math.round((100 * e.loaded) / e.total));
-            },
-          }
+          fileData
+          // {
+          //   onUploadProgress: (e) => {
+          //     setProgress(Math.round((100 * e.loaded) / e.total));
+          //   },
+          // }
         );
         console.log(data);
         setFiles((prevState) => {

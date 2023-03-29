@@ -13,3 +13,24 @@ export const getOrder = async (orderId) => {
     `${process.env.REACT_APP_API_URL}/getorder/${orderId}`
   );
 };
+
+export const updateOrder = async (orderId, orderInfo) => {
+  return await axios.put(
+    `${process.env.REACT_APP_API_URL}/update-order/${orderId}`,
+    orderInfo
+  );
+};
+
+export const createPaymentIntent = async (orderId, orderInfo) => {
+  return await axios.post(
+    `${process.env.REACT_APP_API_URL}/create-payment-intent/${orderId}`,
+    orderInfo
+  );
+};
+
+export const completeOrder = async (orderId, payload) => {
+  return await axios.post(
+    `${process.env.REACT_APP_API_URL}/complete-order/${orderId}`,
+    payload
+  );
+};
